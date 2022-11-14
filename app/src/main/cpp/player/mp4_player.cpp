@@ -7,6 +7,8 @@
 #include <logger.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
+#include <chrono>
+#include <ratio>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -17,8 +19,11 @@ extern "C" {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_cc_imorning_ffmpeg_player_video_mp4_Mp4Player_playVideo(JNIEnv *env, jobject instance,
-                                                             jstring path_, jobject surface) {
+Java_cc_imorning_ffmpeg_player_video_mp4_Mp4Player_playVideo(JNIEnv *env,
+                                                             jobject instance,
+                                                             jstring path_,
+                                                             jobject surface) {
+    auto time_start = std::chrono::high_resolution_clock::now();
     // 记录结果
     int result;
     // R1 Java String -> C String
@@ -100,17 +105,34 @@ Java_cc_imorning_ffmpeg_player_video_mp4_Mp4Player_playVideo(JNIEnv *env, jobjec
     int buffer_size = av_image_get_buffer_size(AV_PIX_FMT_RGBA, videoWidth, videoHeight, 1);
     // R8 申请 Buffer 内存
     auto out_buffer = (uint8_t *) av_malloc(buffer_size * sizeof(uint8_t));
-    av_image_fill_arrays(rgba_frame->data, rgba_frame->linesize, out_buffer, AV_PIX_FMT_RGBA,
-                         videoWidth, videoHeight, 1);
+    av_image_fill_arrays(rgba_frame->data,
+                         rgba_frame->linesize,
+                         out_buffer,
+                         AV_PIX_FMT_RGBA,
+                         videoWidth,
+                         videoHeight,
+                         1);
     // R9 数据格式转换上下文
     struct SwsContext *data_convert_context = sws_getContext(
             videoWidth, videoHeight, video_codec_context->pix_fmt,
             videoWidth, videoHeight, AV_PIX_FMT_RGBA,
             SWS_BICUBIC, nullptr, nullptr, nullptr);
+
+    int totalMs = (int) (format_context->duration / (AV_TIME_BASE / 1000));
+
+    LOG_I("视频总时长:%d ms", totalMs);
+    // pos单位毫秒，拖动到指定位置
+    // double pos;
+    // seekPos = format_context->streams[video_stream_index]->duration * pos;
+    // av_seek_frame(format_context, videoStream, seekPos, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME);
+
     // 开始读取帧
     while (av_read_frame(format_context, packet) >= 0) {
         // 匹配视频流
         if (packet->stream_index == video_stream_index) {
+            auto currentSec =
+                    packet->pts * av_q2d(format_context->streams[video_stream_index]->time_base);
+            LOG_D("播放:%f s", currentSec);
             // 解码
             result = avcodec_send_packet(video_codec_context, packet);
             if (result < 0 && result != AVERROR(EAGAIN) && result != AVERROR_EOF) {
@@ -152,6 +174,9 @@ Java_cc_imorning_ffmpeg_player_video_mp4_Mp4Player_playVideo(JNIEnv *env, jobjec
         // 释放 packet 引用
         av_packet_unref(packet);
     }
+    auto time_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> fp_ms = time_end - time_start;
+    LOG_I("共用时:%f ms", fp_ms.count());
     // 释放 R9
     sws_freeContext(data_convert_context);
     // 释放 R8

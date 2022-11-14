@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.22.1)
 
 project("ffmpeg")
 
+if(ANDROID_ABI STREQUAL armeabi-v7a)
+    set_target_properties(${TARGET} PROPERTIES COMPILE_FLAGS -mfpu=neon)
+endif()
+
 aux_source_directory(./ SOURCES)
 aux_source_directory(./player/ PLAYER)
 
