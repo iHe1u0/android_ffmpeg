@@ -2,8 +2,6 @@ package cc.imorning.ffmpeg.jni;
 
 import android.util.Log;
 
-import cc.imorning.ffmpeg.player.BasePlayer;
-
 public class Jni {
 
     private static final String TAG = "JniLoader";
@@ -17,7 +15,9 @@ public class Jni {
                 "swscale",
                 "swresample",
                 "postproc",
-                "avutil"
+                "avutil",
+                "mp3lame"
+
         };
         for (String lib : libs) {
             try {

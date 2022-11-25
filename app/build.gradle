@@ -17,17 +17,17 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags '-std=c++17 -frtti -fexceptions'
+                cppFlags "-std=c++17 -frtti -fexceptions"
+                cFlags "-DSTDC_HEADERS"
                 arguments "-DANDROID_STL=c++_shared",
                         "-DANDROID_TOOLCHAIN=clang -mfloat-abi=softfp -mfpu=neon"
-                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+                abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
             }
         }
         ndk {
             abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -50,15 +50,24 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        pickFirst 'lib/*/libavcodec.so'
+        pickFirst 'lib/*/libavfilter.so'
+        pickFirst 'lib/*/libavformat.so'
+        pickFirst 'lib/*/libavutil.so'
+        pickFirst 'lib/*/libpostproc.so'
+        pickFirst 'lib/*/libswresample.so'
+        pickFirst 'lib/*/libswscale.so'
+    }
 }
 
 dependencies {
-
+    //noinspection GradleDependency
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
 }

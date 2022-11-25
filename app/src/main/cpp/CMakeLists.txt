@@ -6,14 +6,16 @@ if(ANDROID_ABI STREQUAL armeabi-v7a)
     set_target_properties(${TARGET} PROPERTIES COMPILE_FLAGS -mfpu=neon)
 endif()
 
-aux_source_directory(./ SOURCES)
-aux_source_directory(./player/ PLAYER)
+aux_source_directory(./libmp3lame/ LAME_SOURCES)
+aux_source_directory(./player/ PLAYER_SOURCES)
 
-add_library( # Sets the name of the library.
-        ffmpeg
+add_library(ffmpeg
         SHARED
-        ${SOURCES}
-        ${PLAYER})
+        ${PLAYER_SOURCES} ffmpeg.cpp)
+
+add_library(mp3lame
+        SHARED
+        ${LAME_SOURCES} lame.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/include/)
 
@@ -44,5 +46,9 @@ target_link_libraries(ffmpeg
         libswresample
         libpostproc
         libavutil
+        ${log-lib}
+        android)
+
+target_link_libraries(mp3lame
         ${log-lib}
         android)
