@@ -5,9 +5,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
-import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -17,7 +17,6 @@ import cc.imorning.ffmpeg.player.video.mp4.Mp4Player
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -35,7 +34,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN
         window.setFlags(
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -47,7 +47,9 @@ class MainActivity : AppCompatActivity() {
 
         surfaceHolder = binding.surfaceView.holder
 
-        if (File(audioFile).exists()) {
+        var mp3Exist = File(audioFile).exists()
+        Log.i(TAG, "onCreate: $mp3Exist")
+        if (mp3Exist) {
             mp3Player = Mp3Player()
             MainScope().launch(Dispatchers.IO) {
                 mp3Player.playAudio(audioFile)
